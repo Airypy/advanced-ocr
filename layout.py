@@ -30,8 +30,6 @@ def get_page(page_name):
         return page
 
 def questions_extr(text,set):
-    q = open('Questions.txt','a')
-    o = open('Options.txt','a')
     #Pattern to select answers
     non_waste=re.compile('(?!.*(COMPETITIVE|EXAMS)).*[^%|FOR]$')
     options=re.compile('[a-d][.].*')#Pattern to select options
@@ -47,13 +45,6 @@ def questions_extr(text,set):
     new_page=1
     while(i<length):
         if "ANSWERS" in lines[i]:
-            set+=1
-            section=[]
-            tmp_dic={}
-            tmp_dic["# QUESTION:"]=''
-            tmp_dic['Options']=''
-            section.append(tmp_dic)
-            pdf['SECTION-'+str(set)]=section
             while(True and i<length):
                 if "SECTION-" in lines[i]:
                     break
@@ -62,7 +53,6 @@ def questions_extr(text,set):
             if new_page==0:
                 tmp_dic['Options']+=lines[i]+" "
             if new_page==1:
-                print(pdf["SECTION-"+str(set)])
                 pdf["SECTION-"+str(set)][len(pdf["SECTION-"+str(set)])-1]['Options']+=lines[i]+" "
                 #o.write(' '+lines[i]+'\n')
                 if 'd.' in lines[i] :
@@ -98,11 +88,7 @@ def questions_extr(text,set):
     f=open("jsondata.txt",'w')
     s=json.dumps(pdf)
     f.write(s)
-    q.close()
-    o.close()
     f.close()
-
-    return set
 
 def answers_extr(text,set):
     a = open('Answers.txt','a')
@@ -162,11 +148,25 @@ def instance_pdf(pdf_name):
                 ans_flag=1
                 questions_extr(text,set)
                 answers_extr(text,set)
+                set+=1
+                f=open("jsondata.txt",'r')
+                pdf=json.load(f)
+                f.close()
+                section=[]
+                tmp_dic={}
+                tmp_dic["# QUESTION:"]=''
+                tmp_dic['Options']=''
+                section.append(tmp_dic)
+                pdf['SECTION-'+str(set)]=section
+                s=json.dumps(pdf)
+                with open("jsondata.txt",'w') as f:
+                    f.write(s)
+                f.close()
             if 'SECTION-' in text or qsn_flag==1:#Checking First Occ. questions(questions_start)
                 ans_flag=0
                 qsn_flag=1
                 print(set)
-                set=questions_extr(text,set)
+                questions_extr(text,set)
             s_page+=1
 
 instance_pdf('Geography.pdf')
